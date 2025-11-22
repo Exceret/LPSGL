@@ -60,62 +60,59 @@
 #' )
 #' }
 run_leiden_clustering <- function(
-  seurat_obj,
-  graph_name = "RNA_snn",
-  resolution = 0.6,
-  ...
+    seurat_obj,
+    graph_name = "RNA_snn",
+    resolution = 0.6,
+    ...
 ) {
-  dots <- rlang::list2(...)
-  seed <- dots$seed %||% SigBridgeRUtils::getFuncOption("seed")
-  verbose <- dots$verbose %||% SigBridgeRUtils::getFuncOption("verbose")
+    dots <- rlang::list2(...)
+    seed <- dots$seed %||% SigBridgeRUtils::getFuncOption("seed")
+    verbose <- dots$verbose %||% SigBridgeRUtils::getFuncOption("verbose")
 
-  if (!graph_name %in% names(seurat_obj@graphs)) {
-    cli::cli_abort(c(
-      "x" = "{.field {graph_name}} No found",
-      ">" = sprintf(
-        "Available graphs: %s",
-        paste(names(seurat_obj@graphs), collapse = ", ")
-      )
-    ))
-  }
-  if (verbose) {
-    ts_cli$cli_alert_info("Fetch graph from Seurat object")
-  }
+    if (!graph_name %in% names(seurat_obj@graphs)) {
+        cli::cli_abort(c(
+            "x" = "{.field {graph_name}} No found",
+            ">" = sprintf(
+                "Available graphs: %s",
+                paste(names(seurat_obj@graphs), collapse = ", ")
+            )
+        ))
+    }
+    if (verbose) {
+        ts_cli$cli_alert_info("Fetch graph from Seurat object")
+    }
 
-  network <- SeuratObject::Graphs(seurat_obj, slot = graph_name)
+    network <- SeuratObject::Graphs(seurat_obj, slot = graph_name)
 
-  if (!inherits(network, "dgCMatrix")) {
-    snn <- methods::as(as.matrix(network), "dgCMatrix")
-  } else {
-    snn <- network
-  }
+    snn_dt <- data.table::data.table(
+        from = network@i + 1L, # C 0-based to R 1-based index
+        to = rep(seq_len(ncol(network)), diff(network@p)),
+        weight = network@x
+    )
 
-  snn_summary <- summary(snn)
-  snn_dt <- data.table::data.table(
-    from = snn_summary$i,
-    to = snn_summary$j,
-    weight = snn_summary$x
-  )
+    if (verbose) {
+        ts_cli$cli_alert_info("Run Leiden clustering")
+    }
 
-  if (verbose) {
-    ts_cli$cli_alert_info("Run Leiden clustering")
-  }
+    g <- igraph::graph_from_data_frame(snn_dt, directed = FALSE)
 
-  g <- igraph::graph_from_data_frame(snn_dt, directed = FALSE)
+    set.seed(seed)
 
-  set.seed(seed)
+    if (length(resolution) == 1) {
+        return(leiden_to_membership(g, seurat_obj, resolution = resolution))
+    }
 
-  if (length(resolution) == 1) {
-    return(leiden_to_membership(g, seurat_obj, resolution = resolution))
-  }
-
-  purrr::map(
-    resolution,
-    function(r) {
-      leiden_to_membership(g, seurat_obj, resolution = r)
-    },
-    .progress = if (verbose) "Multi-resolution Leiden clustering:" else FALSE
-  )
+    purrr::map(
+        resolution,
+        function(r) {
+            leiden_to_membership(g, seurat_obj, resolution = r)
+        },
+        .progress = if (verbose) {
+            "Multi-resolution Leiden clustering:"
+        } else {
+            FALSE
+        }
+    )
 }
 
 #' @title Convert Leiden result to membership vector
@@ -131,13 +128,16 @@ run_leiden_clustering <- function(
 #' @return A numeric vector of cluster assignments for each cell
 #' @export
 leiden_to_membership <- function(igraph, seurat_obj, resolution = 0.6) {
-  leiden_result <- leidenAlg::leiden.community(igraph, resolution = resolution)
+    leiden_result <- leidenAlg::leiden.community(
+        igraph,
+        resolution = resolution
+    )
 
-  membership <- leiden_result[["membership"]]
-  n_cells <- ncol(seurat_obj)
+    membership <- leiden_result[["membership"]]
+    n_cells <- ncol(seurat_obj)
 
-  cell_names <- names(membership) # numeric value
+    cell_names <- names(membership) # numeric value
 
-  idx <- match(seq_len(n_cells), as.numeric(cell_names))
-  as.numeric(membership[idx])
+    idx <- match(seq_len(n_cells), as.numeric(cell_names))
+    as.numeric(membership[idx])
 }
