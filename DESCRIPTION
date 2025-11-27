@@ -24,4 +24,4 @@ Imports:
     SGL,
     SigBridgeRUtils
 Remotes:
-    github: "WangLabCSU/SigBridgeRUtils"
+    github::WangLabCSU/SigBridgeRUtils
