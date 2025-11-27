@@ -16,6 +16,9 @@ knitr::opts_chunk$set(
 
 Forked from [https://github.com/hongmeizhanghm/LP_GSL](https://github.com/hongmeizhanghm/LP_SGL), made it a package.
 
+Please use [SigBridgeR](https://github.com/WangLabCSU/SigBridgeR) for the fork version of LP_SGL. Bug reports and feature requests are welcomed at [SigBridgeR-issues](https://github.com/WangLabCSU/SigBridgeR/issues).
+
+
 ## Installation
 
 ```{r,eval=FALSE}

@@ -23,3 +23,5 @@ Imports:
     SeuratObject,
     SGL,
     SigBridgeRUtils
+Remotes:
+    github: "WangLabCSU/SigBridgeRUtils"
