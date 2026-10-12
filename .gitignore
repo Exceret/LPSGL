@@ -1,1 +1,4 @@
 .Rproj.user
+.vscode/settings.json
+tests/testthat/lpsgl_res.qs
+tests/testthat/test-reference.R
