@@ -56,20 +56,20 @@ clusters <- run_leiden_clustering(seurat_obj)
 
 # Custom resolution and graph
 clusters <- run_leiden_clustering(
-seurat_obj,
-graph_name = "integrated_snn",
-resolution = 0.8
+  seurat_obj,
+  graph_name = "integrated_snn",
+  resolution = 0.8
 )
 
 # Multiple resolutions
 multi_clusters <- run_leiden_clustering(
-seurat_obj,
-resolution = c(0.4, 0.6, 0.8)
+  seurat_obj,
+  resolution = c(0.4, 0.6, 0.8)
 )
 
 # Get full leiden object
 leiden_obj <- run_leiden_clustering(
-seurat_obj,
+  seurat_obj
 )
 }
 }

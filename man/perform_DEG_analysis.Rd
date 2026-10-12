@@ -7,7 +7,7 @@
 perform_DEG_analysis(
   bulk_matrix,
   phenotype,
-  logFC_threshold = 1,
+  logFC_threshold = 1L,
   pval_threshold = 0.05,
   adjust_method = "BH",
   ...
@@ -82,5 +82,5 @@ cat("Downregulated:", deg_results$n_downregulated, "\n")
 
 }
 \seealso{
-\code{\link[limma:lmFit]{limma::lmFit()}}, \code{\link[limma:ebayes]{limma::eBayes()}}, \code{\link[limma:toptable]{limma::topTable()}}
+\code{\link[limma:lmFit]{limma::lmFit()}}, \code{\link[limma:eBayes]{limma::eBayes()}}, \code{\link[limma:topTable]{limma::topTable()}}
 }

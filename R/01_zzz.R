@@ -9,16 +9,4 @@
   invisible()
 }
 
-.onLoad <- function(libname, pkgname) {
-  # Add timestamp to cli functions
-  assign(
-    "ts_cli",
-    SigBridgeRUtils::CreateTimeStampCliEnv(),
-    envir = asNamespace(pkgname)
-  )
-
-  invisible()
-}
-
-#' @importFrom data.table `:=` `%chin%`
-NULL
+ts_cli <- SigBridgeRUtils::CreateTimeStampCliEnv()

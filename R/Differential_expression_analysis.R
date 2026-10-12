@@ -61,94 +61,95 @@
 #' [limma::lmFit()], [limma::eBayes()], [limma::topTable()]
 #' @export
 perform_DEG_analysis <- function(
-    bulk_matrix,
-    phenotype,
-    logFC_threshold = 1,
-    pval_threshold = 0.05,
-    adjust_method = "BH",
-    ...
+  bulk_matrix,
+  phenotype,
+  logFC_threshold = 1L,
+  pval_threshold = 0.05,
+  adjust_method = "BH",
+  ...
 ) {
-    dots <- rlang::list2(...)
-    verbose <- dots$verbose %||% SigBridgeRUtils::getFuncOption("verbose")
-    # Input validation
-    if (!is.vector(phenotype)) {
-        cli::cli_abort(c(
-            "x" = "phenotype must be a vector, currently only binomial phenotype is supported"
-        ))
-    }
-    if (length(table(phenotype)) != 2) {
-        cli::cli_abort(c(
-            "x" = "phenotype must contain exactly two unique groups"
-        ))
-    }
-    adjust_method <- SigBridgeRUtils::MatchArg(
-        adjust_method,
-        c(
-            "BH",
-            "BY",
-            "bonferroni",
-            "holm",
-            "hochberg",
-            "hommel",
-            "fdr",
-            "none"
-        )
-    )
-
-    if (verbose) {
-        ts_cli$cli_alert_info(cli::col_green(
-            "Performing DEG analysis on bulk RNA-seq data"
-        ))
-    }
-    # Load limma functions
-    makeContrasts <- getExportedValue("limma", "makeContrasts")
-    lmFit <- getExportedValue("limma", "lmFit")
-    contrasts.fit <- getExportedValue("limma", "contrasts.fit")
-    eBayes <- getExportedValue("limma", "eBayes")
-    topTable <- getExportedValue("limma", "topTable")
-
-    # Create groups
-    unique_phenotypes <- unique(phenotype)
-    phenotype1_idx <- which(phenotype == unique_phenotypes[1])
-    phenotype2_idx <- which(phenotype == unique_phenotypes[2])
-
-    group <- rep(
-        c(unique_phenotypes[1], unique_phenotypes[2]),
-        c(length(phenotype1_idx), length(phenotype2_idx))
-    )
-
-    # Design matrix
-    design <- stats::model.matrix(~ 0 + factor(group))
-    colnames(design) <- levels(factor(group))
-    rownames(design) <- colnames(bulk_matrix)
-
-    # Contrast matrix
-    contrast.matrix <- makeContrasts(
-        paste0(unique_phenotypes[1], "-", unique_phenotypes[2]),
-        levels = design
-    )
-
-    # Fit linear model
-    fit <- lmFit(bulk_matrix, design)
-    fit2 <- contrasts.fit(fit, contrast.matrix)
-    fit2 <- eBayes(fit2)
-
-    # Extract results
-    DEG_all <- topTable(fit2, coef = 1, n = Inf, adjust.method = adjust_method)
-
-    # Filter significant DEGs
-    DEGs <- subset(
-        DEG_all,
-        abs(DEG_all$logFC) > logFC_threshold & DEG_all$P.Value < pval_threshold
-    )
-
-    # Return results
-    return(list(
-        all_results = DEG_all,
-        significant_DEGs = DEGs,
-        fit = fit2,
-        n_significant = nrow(DEGs),
-        n_upregulated = sum(DEGs$logFC > 0),
-        n_downregulated = sum(DEGs$logFC < 0)
+  dots <- rlang::list2(...)
+  rlang::check_installed("limma")
+  verbose <- dots$verbose %||% SigBridgeRUtils::getFuncOption("verbose")
+  # Input validation
+  if (!is.vector(phenotype)) {
+    cli::cli_abort(c(
+      "x" = "phenotype must be a vector, currently only binomial phenotype is supported"
     ))
+  }
+  if (length(table(phenotype)) != 2L) {
+    cli::cli_abort(c(
+      "x" = "phenotype must contain exactly two unique groups"
+    ))
+  }
+  # support partial matching
+  adjust_method <- SigBridgeRUtils::MatchArg(
+    adjust_method,
+    c(
+      "BH",
+      "BY",
+      "bonferroni",
+      "holm",
+      "hochberg",
+      "hommel",
+      "fdr",
+      "none"
+    )
+  )
+
+  if (verbose) {
+    ts_cli$cli_alert_info(
+      "Performing DEG analysis on bulk RNA-seq data"
+    )
+  }
+
+  # Create groups
+  unique_phenotypes <- unique(phenotype)
+  phenotype1_idx <- which(phenotype == unique_phenotypes[1L])
+  phenotype2_idx <- which(phenotype == unique_phenotypes[2L])
+
+  group <- rep(
+    c(unique_phenotypes[1L], unique_phenotypes[2L]),
+    c(length(phenotype1_idx), length(phenotype2_idx))
+  )
+
+  # Design matrix
+  design <- stats::model.matrix(~ 0L + factor(group))
+  colnames(design) <- levels(factor(group))
+  rownames(design) <- colnames(bulk_matrix)
+
+  # Contrast matrix
+  contrast.matrix <- limma::makeContrasts(
+    paste0(unique_phenotypes[1L], "-", unique_phenotypes[2L]),
+    levels = design
+  )
+
+  # Fit linear model
+  fit <- limma::lmFit(bulk_matrix, design)
+  fit2 <- limma::contrasts.fit(fit, contrast.matrix)
+  fit2 <- limma::eBayes(fit2)
+
+  # Extract results
+  DEG_all <- limma::topTable(
+    fit2,
+    coef = 1L,
+    n = Inf,
+    adjust.method = adjust_method
+  )
+
+  # Filter significant DEGs
+  DEGs <- subset(
+    DEG_all,
+    abs(DEG_all$logFC) > logFC_threshold & DEG_all$P.Value < pval_threshold
+  )
+
+  # Return results
+  return(list(
+    all_results = DEG_all,
+    significant_DEGs = DEGs,
+    fit = fit2,
+    n_significant = nrow(DEGs),
+    n_upregulated = sum(DEGs$logFC > 0L),
+    n_downregulated = sum(DEGs$logFC < 0L)
+  ))
 }
