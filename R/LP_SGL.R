@@ -6,7 +6,8 @@
 #' @param cluster_membership Vector of cluster assignments for cells
 #' @param alpha Mixing parameter for SGL (0-1), default is 0.5
 #' @param nfold Number of folds for cross-validation, default is 5
-#' @param type Type of model: "logit" for logistic regression, "linear" for linear regression
+#' @param type `r lifecycle::badge("deprecated")` Use `family` instead. Type of model: "logit" for logistic regression, "linear" for linear regression
+#' @param family Type of model: "logit" for logistic regression, "linear" for linear regression
 #' @param ... Additional arguments including seed and verbose
 #'
 #' @return List containing positive cells, negative cells, background cells, and optionally full results
@@ -28,8 +29,9 @@ label_cell <- function(
   phenotype,
   cluster_membership,
   alpha = 0.5,
-  nfold = 5,
-  type = c("linear", "logit", "cox"),
+  nfold = 5L,
+  type = lifecycle::deprecated(),
+  family = c("gaussian", "binomial", "cox"),
   ...
 ) {
   dots <- rlang::list2(...)
@@ -39,7 +41,22 @@ label_cell <- function(
     TRUE
   assay <- dots$assay %||% "RNA"
 
-  type <- SigBridgeRUtils::MatchArg(type, c("linear", "logit", "cox"), NULL)
+  family <- if (lifecycle::is_present(type)) {
+    lifecycle::deprecate_warn(
+      "0.0.2",
+      what = "label_cell(type)",
+      with = "label_cell(family)"
+    )
+    switch(
+      type,
+      "linear" = "gaussian",
+      "logit" = "binomial",
+      "cox" = "cox",
+      cli::cli_abort("Invalid type: {type}")
+    )
+  } else {
+    rlang::arg_match(family, c("gaussian", "binomial", "cox"))
+  }
 
   set.seed(seed)
 
@@ -73,7 +90,7 @@ label_cell <- function(
   # Find shared genes
   shared_genes <- intersect(rownames(bulk_dataset), rownames(seurat_obj))
 
-  if (length(shared_genes) == 0) {
+  if (length(shared_genes) == 0L) {
     cli::cli_abort(c(
       "x" = "No shared genes found between bulk and single-cell data",
       ">" = "Bulk genes: {length(rownames(bulk_dataset))}",
@@ -113,7 +130,7 @@ label_cell <- function(
   # Fit SGL model
   if (verbose) {
     ts_cli$cli_alert_info(
-      "Fitting SGL model with alpha = {.val {alpha}}, this may take a while"
+      "Fitting SGL model with alpha = {.val {alpha}}"
     )
   }
   fit <- SGL::SGL(data, cluster_membership, type = type, alpha = alpha)
@@ -123,7 +140,7 @@ label_cell <- function(
 
   # Perform cross-validation
   if (verbose) {
-    ts_cli$cli_alert_info("Running {nfold}-fold cross-validation")
+    ts_cli$cli_alert_info("Running {.val {nfold}}-fold cross-validation")
   }
   cvfit <- SGL::cvSGL(
     data = data,
@@ -137,11 +154,11 @@ label_cell <- function(
   # Find optimal lambda
   error <- cvfit$lldiff
   min_error <- min(error)
-  optimal_idx <- which(error == min_error)[1] # Take first if multiple minima
+  optimal_idx <- which(error == min_error)[1L] # Take first if multiple minima
 
   if (verbose) {
     ts_cli$cli_alert_info(
-      "Optimal lambda index: {.val {optimal_idx}} (error = {.val {min_error}})"
+      "Optimal lambda index: {.val {optimal_idx}} (error = {.val {round(min_error, 4L)}})"
     )
   }
 
@@ -154,9 +171,18 @@ label_cell <- function(
   # Classify cells based on coefficient values
   LP_SGL <- rep("Neutral", n_cell)
 
-  LP_SGL[which(beta_optimal > 0)] <- "Positive"
-  LP_SGL[which(beta_optimal < 0)] <- "Negative"
+  LP_SGL[which(beta_optimal > 0L)] <- "Positive"
+  LP_SGL[which(beta_optimal < 0L)] <- "Negative"
   seurat_obj$LP_SGL <- LP_SGL
+
+  if (verbose) {
+    num_pos <- sum(LP_SGL == "Positive")
+    num_neg <- sum(LP_SGL == "Negative")
+    num_neu <- sum(LP_SGL == "Neutral")
+    ts_cli$cli_alert_info(
+      "Identified {.val {num_pos}} Positive cell{?s}, {.val {num_neg}} Negative cell{?s} and {.val {num_neu}} Neutral cell{?s}"
+    )
+  }
 
   list(seurat_obj = seurat_obj, sgl_fit = fit, cvfit = cvfit)
 }

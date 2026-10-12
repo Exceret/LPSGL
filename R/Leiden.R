@@ -43,20 +43,20 @@
 #'
 #' # Custom resolution and graph
 #' clusters <- run_leiden_clustering(
-#' seurat_obj,
-#' graph_name = "integrated_snn",
-#' resolution = 0.8
+#'   seurat_obj,
+#'   graph_name = "integrated_snn",
+#'   resolution = 0.8
 #' )
 #'
 #' # Multiple resolutions
 #' multi_clusters <- run_leiden_clustering(
-#' seurat_obj,
-#' resolution = c(0.4, 0.6, 0.8)
+#'   seurat_obj,
+#'   resolution = c(0.4, 0.6, 0.8)
 #' )
 #'
 #' # Get full leiden object
 #' leiden_obj <- run_leiden_clustering(
-#' seurat_obj,
+#'   seurat_obj
 #' )
 #' }
 run_leiden_clustering <- function(
@@ -83,7 +83,7 @@ run_leiden_clustering <- function(
 
   network <- SeuratObject::Graphs(seurat_obj, slot = graph_name)
 
-  snn_dt <- data.table::data.table(
+  snn_dt <- data.frame(
     from = network@i + 1L, # C 0-based to R 1-based index
     to = rep(seq_len(ncol(network)), diff(network@p)),
     weight = network@x
@@ -97,19 +97,14 @@ run_leiden_clustering <- function(
 
   set.seed(seed)
 
-  if (length(resolution) == 1) {
+  if (length(resolution) == 1L) {
     return(leiden_to_membership(g, seurat_obj, resolution = resolution))
   }
 
-  purrr::map(
+  lapply(
     resolution,
     function(r) {
       leiden_to_membership(g, seurat_obj, resolution = r)
-    },
-    .progress = if (verbose) {
-      "Multi-resolution Leiden clustering:"
-    } else {
-      FALSE
     }
   )
 }

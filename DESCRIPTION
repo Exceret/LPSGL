@@ -1,10 +1,10 @@
 Package: LPSGL
 Title: What the Package Does (One Line, Title Case)
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
-License: MIT 
+License: MIT + file LICENSE
 Suggests: 
     limma,
     testthat (>= 3.0.0),
@@ -12,16 +12,18 @@ Suggests:
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Imports: 
     cli,
-    data.table,
+    SGL (>= 1.4.0),
     igraph,
     leidenAlg,
-    purrr,
     rlang,
     SeuratObject,
     SGL,
-    SigBridgeRUtils (>= 0.2.2)
+    SigBridgeRUtils (>= 0.2.2),
+    lifecycle
+Config/roxygen2/version: 8.1.0
 Remotes:
-    github::WangLabCSU/SigBridgeRUtils
+    github::Exceret/SGL
+URL: https://github.com/Exceret/LP_SGL
+BugReports: https://github.com/Exceret/LP_SGL/issues

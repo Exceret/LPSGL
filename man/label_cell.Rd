@@ -10,8 +10,9 @@ label_cell(
   phenotype,
   cluster_membership,
   alpha = 0.5,
-  nfold = 5,
-  type = c("linear", "logit", "cox"),
+  nfold = 5L,
+  type = lifecycle::deprecated(),
+  family = c("gaussian", "binomial", "cox"),
   ...
 )
 }
@@ -28,7 +29,9 @@ label_cell(
 
 \item{nfold}{Number of folds for cross-validation, default is 5}
 
-\item{type}{Type of model: "logit" for logistic regression, "linear" for linear regression}
+\item{type}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} Use \code{family} instead. Type of model: "logit" for logistic regression, "linear" for linear regression}
+
+\item{family}{Type of model: "logit" for logistic regression, "linear" for linear regression}
 
 \item{...}{Additional arguments including seed and verbose}
 }
