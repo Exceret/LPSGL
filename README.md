@@ -3,7 +3,9 @@
 # Identifying phenotype-associated subpopulations through LP_SGL
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/Exceret/LP_SGL/actions/workflows/R-CMD-check.yaml/badge.svghttps://github.com/Exceret/LP_SGL/actions/workflows/R-CMD-check.yaml/badge.svghttps://github.com/Exceret/LP_SGL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Exceret/LP_SGL/actions/workflows/R-CMD-check.yaml)
+
+[![R-CMD-check](https://github.com/Exceret/LP_SGL/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Exceret/LP_SGL/actions/workflows/R-CMD-check.yaml)
+[![devel-version](https://img.shields.io/badge/devel%20version-0.0.2-blue.svg)](https://github.com/Exceret/LP_SGL)
 <!-- badges: end -->
 
 Forked from
