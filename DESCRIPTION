@@ -4,7 +4,7 @@ Version: 0.0.2
 Authors@R: 
     person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
-License: MIT + file LICENSE
+License: unlicensed
 Suggests: 
     limma,
     testthat (>= 3.0.0),
@@ -22,7 +22,7 @@ Imports:
     SGL,
     SigBridgeRUtils (>= 0.2.2),
     lifecycle
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
 Remotes:
     github::Exceret/SGL
 URL: https://github.com/Exceret/LP_SGL
